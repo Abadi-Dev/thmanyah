@@ -1,0 +1,29 @@
+# copied from the internet, volume is mounted whwich is the most important
+
+version: '3.8'
+
+services:
+  # Database: PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: thmanyah-db
+    restart: always
+    environment:
+      POSTGRES_USER: thmanyah_user
+      POSTGRES_PASSWORD: thmanyah_password
+      POSTGRES_DB: thmanyah_cms
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Cache: Redis (Critical for 10M users/hour scaling)
+  redis:
+    image: redis:7-alpine
+    container_name: thmanyah-cache
+    restart: always
+    ports:
+      - '6379:6379'
+
+volumes:
+  postgres_data:
