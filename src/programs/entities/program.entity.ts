@@ -30,28 +30,28 @@ export class Program {
   title: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description: string | null;
 
   @Column({ type: 'enum', enum: ProgramType })
   type: ProgramType;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  thumbnailUrl: string;
+  thumbnailUrl: string | null;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  videoUrl: string;
+  videoUrl: string | null;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  youtubeId: string;
+  youtubeId: string | null;
 
   @Column({ type: 'int', nullable: true })
-  duration: number;
+  duration: number | null;
 
   @Column({ type: 'enum', enum: ProgramStatus, default: ProgramStatus.DRAFT })
   status: ProgramStatus;
 
   @Column({ type: 'timestamp', nullable: true })
-  publishedAt: Date;
+  publishedAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;
