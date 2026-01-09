@@ -8,12 +8,14 @@ import { Equal, Repository } from 'typeorm';
 import { Program, ProgramStatus } from './entities/program.entity';
 import { CreateProgramDto, UpdateProgramDto } from './dto';
 import { PaginationDto, PaginatedResult } from '../common';
+import { SearchService } from '../search/search.service';
 
 @Injectable()
 export class ProgramsService {
   constructor(
     @InjectRepository(Program)
     private readonly programRepository: Repository<Program>,
+    private readonly searchService: SearchService,
   ) {}
 
   async create(dto: CreateProgramDto): Promise<Program> {
@@ -31,7 +33,11 @@ export class ProgramsService {
       status: ProgramStatus.DRAFT,
     });
 
-    return this.programRepository.save(program);
+    const saved = await this.programRepository.save(program);
+
+    this.searchService.indexProgram(saved);
+
+    return saved;
   }
 
   async findAll(
@@ -84,37 +90,53 @@ export class ProgramsService {
     }
 
     Object.assign(program, dto);
-    return this.programRepository.save(program);
+    const updated = await this.programRepository.save(program);
+
+    // Sync to Meilisearch
+    this.searchService.indexProgram(updated);
+
+    return updated;
   }
 
   async remove(id: string): Promise<void> {
     const program = await this.findOne(id);
     await this.programRepository.remove(program);
+
+    // Remove from Meilisearch
+    this.searchService.removeProgram(id);
   }
 
   async publish(id: string): Promise<Program> {
     const program = await this.findOne(id);
     program.status = ProgramStatus.PUBLISHED;
     program.publishedAt = new Date();
-    return this.programRepository.save(program);
+    const updated = await this.programRepository.save(program);
+    this.searchService.indexProgram(updated);
+    return updated;
   }
 
   async unpublish(id: string): Promise<Program> {
     const program = await this.findOne(id);
     program.status = ProgramStatus.DRAFT;
     program.publishedAt = null;
-    return this.programRepository.save(program);
+    const updated = await this.programRepository.save(program);
+    this.searchService.indexProgram(updated);
+    return updated;
   }
 
   async archive(id: string): Promise<Program> {
     const program = await this.findOne(id);
     program.status = ProgramStatus.ARCHIVED;
-    return this.programRepository.save(program);
+    const updated = await this.programRepository.save(program);
+    this.searchService.indexProgram(updated);
+    return updated;
   }
 
   async restore(id: string): Promise<Program> {
     const program = await this.findOne(id);
     program.status = ProgramStatus.DRAFT;
-    return this.programRepository.save(program);
+    const updated = await this.programRepository.save(program);
+    this.searchService.indexProgram(updated);
+    return updated;
   }
 }

@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CmsModule } from './cms/cms.module';
 import { ProgramsModule } from './programs/programs.module';
+import { SearchModule } from './search/search.module';
+import { DiscoveryModule } from './discovery/discovery.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { ProgramsModule } from './programs/programs.module';
     }),
     ProgramsModule,
     CmsModule,
+    SearchModule,
+    DiscoveryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

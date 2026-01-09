@@ -9,6 +9,7 @@ import { Episode, EpisodeStatus } from './entities/episode.entity';
 import { Program } from '../programs/entities/program.entity';
 import { CreateEpisodeDto, UpdateEpisodeDto, EpisodeFilterDto } from './dto';
 import { PaginationDto, PaginatedResult } from '../common';
+import { SearchService } from '../search/search.service';
 
 @Injectable()
 export class EpisodesService {
@@ -17,6 +18,7 @@ export class EpisodesService {
     private readonly episodeRepository: Repository<Episode>,
     @InjectRepository(Program)
     private readonly programRepository: Repository<Program>,
+    private readonly searchService: SearchService,
   ) {}
 
   async create(dto: CreateEpisodeDto): Promise<Episode> {
@@ -58,7 +60,12 @@ export class EpisodesService {
       status: EpisodeStatus.DRAFT,
     });
 
-    return this.episodeRepository.save(episode);
+    const saved = await this.episodeRepository.save(episode);
+
+    // Sync to Meilisearch
+    this.searchService.indexEpisode(saved);
+
+    return saved;
   }
 
   async findAll(
@@ -152,37 +159,53 @@ export class EpisodesService {
     }
 
     Object.assign(episode, dto);
-    return this.episodeRepository.save(episode);
+    const updated = await this.episodeRepository.save(episode);
+
+    // Sync to Meilisearch
+    this.searchService.indexEpisode(updated);
+
+    return updated;
   }
 
   async remove(id: string): Promise<void> {
     const episode = await this.findOne(id);
     await this.episodeRepository.remove(episode);
+
+    // Remove from Meilisearch
+    this.searchService.removeEpisode(id);
   }
 
   async publish(id: string): Promise<Episode> {
     const episode = await this.findOne(id);
     episode.status = EpisodeStatus.PUBLISHED;
     episode.publishedAt = new Date();
-    return this.episodeRepository.save(episode);
+    const updated = await this.episodeRepository.save(episode);
+    this.searchService.indexEpisode(updated);
+    return updated;
   }
 
   async unpublish(id: string): Promise<Episode> {
     const episode = await this.findOne(id);
     episode.status = EpisodeStatus.DRAFT;
     episode.publishedAt = null;
-    return this.episodeRepository.save(episode);
+    const updated = await this.episodeRepository.save(episode);
+    this.searchService.indexEpisode(updated);
+    return updated;
   }
 
   async archive(id: string): Promise<Episode> {
     const episode = await this.findOne(id);
     episode.status = EpisodeStatus.ARCHIVED;
-    return this.episodeRepository.save(episode);
+    const updated = await this.episodeRepository.save(episode);
+    this.searchService.indexEpisode(updated);
+    return updated;
   }
 
   async restore(id: string): Promise<Episode> {
     const episode = await this.findOne(id);
     episode.status = EpisodeStatus.DRAFT;
-    return this.episodeRepository.save(episode);
+    const updated = await this.episodeRepository.save(episode);
+    this.searchService.indexEpisode(updated);
+    return updated;
   }
 }
