@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Equal, Repository } from 'typeorm';
 import { Program, ProgramStatus } from './entities/program.entity';
 import { CreateProgramDto, UpdateProgramDto } from './dto';
+import { PaginationDto, PaginatedResult } from '../common';
 
 @Injectable()
 export class ProgramsService {
@@ -33,10 +34,27 @@ export class ProgramsService {
     return this.programRepository.save(program);
   }
 
-  async findAll(): Promise<Program[]> {
-    return this.programRepository.find({
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Program>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.programRepository.findAndCount({
       order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
     });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string): Promise<Program> {

@@ -6,16 +6,23 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
 import { ProgramsService } from '../programs/programs.service';
+import { EpisodesService } from '../episodes/episodes.service';
 import { CreateProgramDto, UpdateProgramDto } from '../programs/dto';
 import { Program } from '../programs/entities/program.entity';
+import { Episode } from '../episodes/entities/episode.entity';
+import { PaginationDto, PaginatedResult } from '../common';
 
 @Controller('cms/programs')
 export class CmsController {
-  constructor(private readonly programsService: ProgramsService) {}
+  constructor(
+    private readonly programsService: ProgramsService,
+    private readonly episodesService: EpisodesService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -24,8 +31,10 @@ export class CmsController {
   }
 
   @Get()
-  findAll(): Promise<Program[]> {
-    return this.programsService.findAll();
+  findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Program>> {
+    return this.programsService.findAll(paginationDto);
   }
 
   @Get(':id')
@@ -65,5 +74,13 @@ export class CmsController {
   @Patch(':id/restore')
   restore(@Param('id') id: string): Promise<Program> {
     return this.programsService.restore(id);
+  }
+
+  @Get(':id/episodes')
+  findEpisodes(
+    @Param('id') id: string,
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Episode>> {
+    return this.episodesService.findByProgram(id, paginationDto);
   }
 }

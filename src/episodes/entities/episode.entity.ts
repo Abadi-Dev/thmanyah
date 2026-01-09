@@ -4,26 +4,38 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  Index,
 } from 'typeorm';
-import { Episode } from '../../episodes/entities/episode.entity';
+import { Program } from '../../programs/entities/program.entity';
 
-export enum ProgramType {
-  PODCAST = 'podcast',
-  DOCUMENTARY = 'documentary',
-  VIDEO = 'video',
-}
-
-export enum ProgramStatus {
+export enum EpisodeStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
   ARCHIVED = 'archived',
 }
 
-@Entity('programs')
-export class Program {
+@Entity('episodes')
+@Index(['programId', 'episodeNumber'], { unique: true })
+export class Episode {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ type: 'uuid' })
+  programId: string;
+
+  @ManyToOne(() => Program, (program) => program.episodes, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'programId' })
+  program: Program;
+
+  @Column({ type: 'int' })
+  episodeNumber: number;
+
+  @Column({ type: 'int', nullable: true })
+  seasonNumber: number | null;
 
   @Column({ type: 'varchar', length: 255, unique: true })
   slug: string;
@@ -34,14 +46,14 @@ export class Program {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  @Column({ type: 'enum', enum: ProgramType })
-  type: ProgramType;
-
   @Column({ type: 'varchar', length: 500, nullable: true })
   thumbnailUrl: string | null;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   videoUrl: string | null;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  audioUrl: string | null;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   youtubeId: string | null;
@@ -49,8 +61,8 @@ export class Program {
   @Column({ type: 'int', nullable: true })
   duration: number | null;
 
-  @Column({ type: 'enum', enum: ProgramStatus, default: ProgramStatus.DRAFT })
-  status: ProgramStatus;
+  @Column({ type: 'enum', enum: EpisodeStatus, default: EpisodeStatus.DRAFT })
+  status: EpisodeStatus;
 
   @Column({ type: 'timestamp', nullable: true })
   publishedAt: Date | null;
@@ -60,7 +72,4 @@ export class Program {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @OneToMany(() => Episode, (episode) => episode.program)
-  episodes: Episode[];
 }

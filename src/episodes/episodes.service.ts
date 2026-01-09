@@ -1,0 +1,172 @@
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Equal, Repository } from 'typeorm';
+import { Episode, EpisodeStatus } from './entities/episode.entity';
+import { CreateEpisodeDto, UpdateEpisodeDto } from './dto';
+import { PaginationDto, PaginatedResult } from '../common';
+
+@Injectable()
+export class EpisodesService {
+  constructor(
+    @InjectRepository(Episode)
+    private readonly episodeRepository: Repository<Episode>,
+  ) {}
+
+  async create(dto: CreateEpisodeDto): Promise<Episode> {
+    // Check for duplicate slug
+    const existingSlug = await this.episodeRepository.findOne({
+      where: { slug: dto.slug },
+    });
+    if (existingSlug) {
+      throw new ConflictException(
+        `Episode with slug '${dto.slug}' already exists`,
+      );
+    }
+
+    // Check for duplicate episode number within program
+    const existingEpisode = await this.episodeRepository.findOne({
+      where: {
+        programId: dto.programId,
+        episodeNumber: dto.episodeNumber,
+      },
+    });
+    if (existingEpisode) {
+      throw new ConflictException(
+        `Episode ${dto.episodeNumber} already exists in this program`,
+      );
+    }
+
+    const episode = this.episodeRepository.create({
+      ...dto,
+      status: EpisodeStatus.DRAFT,
+    });
+
+    return this.episodeRepository.save(episode);
+  }
+
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Episode>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.episodeRepository.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findByProgram(
+    programId: string,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Episode>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.episodeRepository.findAndCount({
+      where: { programId: Equal(programId) },
+      order: { episodeNumber: 'ASC' },
+      skip,
+      take: limit,
+    });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findOne(id: string): Promise<Episode> {
+    const episode = await this.episodeRepository.findOne({
+      where: { id: Equal(id) },
+      relations: ['program'],
+    });
+    if (!episode) {
+      throw new NotFoundException(`Episode with id '${id}' not found`);
+    }
+    return episode;
+  }
+
+  async update(id: string, dto: UpdateEpisodeDto): Promise<Episode> {
+    const episode = await this.findOne(id);
+
+    if (dto.slug && dto.slug !== episode.slug) {
+      const existing = await this.episodeRepository.findOne({
+        where: { slug: dto.slug },
+      });
+      if (existing) {
+        throw new ConflictException(
+          `Episode with slug '${dto.slug}' already exists`,
+        );
+      }
+    }
+
+    if (dto.episodeNumber && dto.episodeNumber !== episode.episodeNumber) {
+      const existing = await this.episodeRepository.findOne({
+        where: {
+          programId: episode.programId,
+          episodeNumber: dto.episodeNumber,
+        },
+      });
+      if (existing) {
+        throw new ConflictException(
+          `Episode ${dto.episodeNumber} already exists in this program`,
+        );
+      }
+    }
+
+    Object.assign(episode, dto);
+    return this.episodeRepository.save(episode);
+  }
+
+  async remove(id: string): Promise<void> {
+    const episode = await this.findOne(id);
+    await this.episodeRepository.remove(episode);
+  }
+
+  async publish(id: string): Promise<Episode> {
+    const episode = await this.findOne(id);
+    episode.status = EpisodeStatus.PUBLISHED;
+    episode.publishedAt = new Date();
+    return this.episodeRepository.save(episode);
+  }
+
+  async unpublish(id: string): Promise<Episode> {
+    const episode = await this.findOne(id);
+    episode.status = EpisodeStatus.DRAFT;
+    episode.publishedAt = null;
+    return this.episodeRepository.save(episode);
+  }
+
+  async archive(id: string): Promise<Episode> {
+    const episode = await this.findOne(id);
+    episode.status = EpisodeStatus.ARCHIVED;
+    return this.episodeRepository.save(episode);
+  }
+
+  async restore(id: string): Promise<Episode> {
+    const episode = await this.findOne(id);
+    episode.status = EpisodeStatus.DRAFT;
+    return this.episodeRepository.save(episode);
+  }
+}
