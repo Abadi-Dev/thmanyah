@@ -9,62 +9,61 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ProgramsService } from '../programs/programs.service';
+import { CreateProgramDto, UpdateProgramDto } from '../programs/dto';
+import { Program } from '../programs/entities/program.entity';
 
 @Controller('cms/programs')
 export class CmsController {
-  // Create a new program (starts as draft)
+  constructor(private readonly programsService: ProgramsService) {}
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() body: any) {
-    return {
-      id: 'uuid-placeholder',
-      ...body,
-      status: 'draft',
-      createdAt: new Date(),
-    };
+  create(@Body() dto: CreateProgramDto): Promise<Program> {
+    return this.programsService.create(dto);
   }
 
   @Get()
-  findAll() {
-    return [
-      { id: '1', title: 'فنجان', status: 'published' },
-      { id: '2', title: 'سوالف بزنس', status: 'draft' },
-    ];
+  findAll(): Promise<Program[]> {
+    return this.programsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return { id, title: 'فنجان', status: 'draft' };
+  findOne(@Param('id') id: string): Promise<Program> {
+    return this.programsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: any) {
-    return { id, ...body, updatedAt: new Date() };
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateProgramDto,
+  ): Promise<Program> {
+    return this.programsService.update(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
-    return id;
+  remove(@Param('id') id: string): Promise<void> {
+    return this.programsService.remove(id);
   }
 
   @Patch(':id/publish')
-  publish(@Param('id') id: string) {
-    return { id, status: 'published', publishedAt: new Date() };
+  publish(@Param('id') id: string): Promise<Program> {
+    return this.programsService.publish(id);
   }
 
   @Patch(':id/unpublish')
-  unpublish(@Param('id') id: string) {
-    return { id, status: 'draft', publishedAt: null };
+  unpublish(@Param('id') id: string): Promise<Program> {
+    return this.programsService.unpublish(id);
   }
 
   @Patch(':id/archive')
-  archive(@Param('id') id: string) {
-    return { id, status: 'archived' };
+  archive(@Param('id') id: string): Promise<Program> {
+    return this.programsService.archive(id);
   }
 
   @Patch(':id/restore')
-  restore(@Param('id') id: string) {
-    return { id, status: 'draft' };
+  restore(@Param('id') id: string): Promise<Program> {
+    return this.programsService.restore(id);
   }
 }
