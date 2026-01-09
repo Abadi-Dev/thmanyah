@@ -6,7 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Equal, Repository } from 'typeorm';
 import { Episode, EpisodeStatus } from './entities/episode.entity';
-import { CreateEpisodeDto, UpdateEpisodeDto } from './dto';
+import { Program } from '../programs/entities/program.entity';
+import { CreateEpisodeDto, UpdateEpisodeDto, EpisodeFilterDto } from './dto';
 import { PaginationDto, PaginatedResult } from '../common';
 
 @Injectable()
@@ -14,9 +15,21 @@ export class EpisodesService {
   constructor(
     @InjectRepository(Episode)
     private readonly episodeRepository: Repository<Episode>,
+    @InjectRepository(Program)
+    private readonly programRepository: Repository<Program>,
   ) {}
 
   async create(dto: CreateEpisodeDto): Promise<Episode> {
+    // make sure the program exists first
+    const program = await this.programRepository.findOne({
+      where: { id: Equal(dto.programId) },
+    });
+    if (!program) {
+      throw new NotFoundException(
+        `Program with id '${dto.programId}' not found`,
+      );
+    }
+
     // Check for duplicate slug
     const existingSlug = await this.episodeRepository.findOne({
       where: { slug: dto.slug },
@@ -49,13 +62,16 @@ export class EpisodesService {
   }
 
   async findAll(
-    paginationDto: PaginationDto,
+    filterDto: EpisodeFilterDto,
   ): Promise<PaginatedResult<Episode>> {
-    const { page = 1, limit = 10 } = paginationDto;
+    const { page = 1, limit = 10, programId } = filterDto;
     const skip = (page - 1) * limit;
 
+    const where = programId ? { programId: Equal(programId) } : {};
+
     const [data, total] = await this.episodeRepository.findAndCount({
-      order: { createdAt: 'DESC' },
+      where,
+      order: programId ? { episodeNumber: 'ASC' } : { createdAt: 'DESC' },
       skip,
       take: limit,
     });

@@ -60,6 +60,8 @@ export class ProgramsService {
   async findOne(id: string): Promise<Program> {
     const program = await this.programRepository.findOne({
       where: { id: Equal(id) },
+      relations: ['episodes'],
+      order: { episodes: { episodeNumber: 'ASC' } },
     });
     if (!program) {
       throw new NotFoundException(`Program with id '${id}' not found`);

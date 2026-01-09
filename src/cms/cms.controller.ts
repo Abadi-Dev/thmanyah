@@ -9,7 +9,9 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { ProgramsService } from '../programs/programs.service';
 import { EpisodesService } from '../episodes/episodes.service';
 import { CreateProgramDto, UpdateProgramDto } from '../programs/dto';
@@ -17,6 +19,7 @@ import { Program } from '../programs/entities/program.entity';
 import { Episode } from '../episodes/entities/episode.entity';
 import { PaginationDto, PaginatedResult } from '../common';
 
+@ApiTags('cms')
 @Controller('cms/programs')
 export class CmsController {
   constructor(
@@ -38,13 +41,13 @@ export class CmsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Program> {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Program> {
     return this.programsService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProgramDto,
   ): Promise<Program> {
     return this.programsService.update(id, dto);
@@ -52,33 +55,33 @@ export class CmsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string): Promise<void> {
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.programsService.remove(id);
   }
 
   @Patch(':id/publish')
-  publish(@Param('id') id: string): Promise<Program> {
+  publish(@Param('id', ParseUUIDPipe) id: string): Promise<Program> {
     return this.programsService.publish(id);
   }
 
   @Patch(':id/unpublish')
-  unpublish(@Param('id') id: string): Promise<Program> {
+  unpublish(@Param('id', ParseUUIDPipe) id: string): Promise<Program> {
     return this.programsService.unpublish(id);
   }
 
   @Patch(':id/archive')
-  archive(@Param('id') id: string): Promise<Program> {
+  archive(@Param('id', ParseUUIDPipe) id: string): Promise<Program> {
     return this.programsService.archive(id);
   }
 
   @Patch(':id/restore')
-  restore(@Param('id') id: string): Promise<Program> {
+  restore(@Param('id', ParseUUIDPipe) id: string): Promise<Program> {
     return this.programsService.restore(id);
   }
 
   @Get(':id/episodes')
   findEpisodes(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() paginationDto: PaginationDto,
   ): Promise<PaginatedResult<Episode>> {
     return this.episodesService.findByProgram(id, paginationDto);

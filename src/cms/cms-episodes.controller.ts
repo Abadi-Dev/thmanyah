@@ -9,12 +9,13 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { EpisodesService } from '../episodes/episodes.service';
-import { CreateEpisodeDto, UpdateEpisodeDto } from '../episodes/dto';
+import { CreateEpisodeDto, UpdateEpisodeDto, EpisodeFilterDto } from '../episodes/dto';
 import { Episode } from '../episodes/entities/episode.entity';
-import { PaginationDto, PaginatedResult } from '../common';
+import { PaginatedResult } from '../common';
 
 @ApiTags('cms')
 @Controller('cms/episodes')
@@ -29,19 +30,19 @@ export class CmsEpisodesController {
 
   @Get()
   findAll(
-    @Query() paginationDto: PaginationDto,
+    @Query() filterDto: EpisodeFilterDto,
   ): Promise<PaginatedResult<Episode>> {
-    return this.episodesService.findAll(paginationDto);
+    return this.episodesService.findAll(filterDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Episode> {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Episode> {
     return this.episodesService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateEpisodeDto,
   ): Promise<Episode> {
     return this.episodesService.update(id, dto);
@@ -49,27 +50,27 @@ export class CmsEpisodesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string): Promise<void> {
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.episodesService.remove(id);
   }
 
   @Patch(':id/publish')
-  publish(@Param('id') id: string): Promise<Episode> {
+  publish(@Param('id', ParseUUIDPipe) id: string): Promise<Episode> {
     return this.episodesService.publish(id);
   }
 
   @Patch(':id/unpublish')
-  unpublish(@Param('id') id: string): Promise<Episode> {
+  unpublish(@Param('id', ParseUUIDPipe) id: string): Promise<Episode> {
     return this.episodesService.unpublish(id);
   }
 
   @Patch(':id/archive')
-  archive(@Param('id') id: string): Promise<Episode> {
+  archive(@Param('id', ParseUUIDPipe) id: string): Promise<Episode> {
     return this.episodesService.archive(id);
   }
 
   @Patch(':id/restore')
-  restore(@Param('id') id: string): Promise<Episode> {
+  restore(@Param('id', ParseUUIDPipe) id: string): Promise<Episode> {
     return this.episodesService.restore(id);
   }
 }
