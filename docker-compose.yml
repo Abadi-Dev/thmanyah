@@ -25,5 +25,19 @@ services:
     ports:
       - '6379:6379'
 
+  # Search: Meilisearch (Fast full-text search)
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: thmanyah-search
+    restart: always
+    environment:
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: true
+    ports:
+      - '7700:7700'
+    volumes:
+      - meilisearch_data:/meili_data
+
 volumes:
   postgres_data:
+  meilisearch_data:
