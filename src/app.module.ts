@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CmsModule } from './cms/cms.module';
+import { ProgramsModule } from './programs/programs.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CmsModule } from './cms/cms.module';
       }),
       inject: [ConfigService],
     }),
+    ProgramsModule,
     CmsModule,
   ],
   controllers: [AppController],
