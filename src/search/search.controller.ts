@@ -28,10 +28,12 @@ export class SearchController {
       return { hits: [], total: 0 };
     }
 
-    const filter = dto.type ? `type = "${dto.type}"` : undefined;
+    const filters: string[] = [];
+    if (dto.type) filters.push(`type = "${dto.type}"`);
+    if (dto.category) filters.push(`category = "${dto.category}"`);
 
     return this.searchService.searchPrograms(dto.q.trim(), {
-      filter,
+      filter: filters.length > 0 ? filters.join(' AND ') : undefined,
       limit: dto.limit ? parseInt(dto.limit, 10) : 20,
     });
   }

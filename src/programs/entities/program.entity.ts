@@ -37,6 +37,12 @@ export class Program {
   @Column({ type: 'enum', enum: ProgramType })
   type: ProgramType;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  category: string | null;
+
+  @Column({ type: 'varchar', length: 10, default: 'ar' })
+  language: string;
+
   @Column({ type: 'varchar', length: 500, nullable: true })
   thumbnailUrl: string | null;
 

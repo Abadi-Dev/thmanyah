@@ -40,6 +40,22 @@ export class CreateProgramDto {
   @IsEnum(ProgramType)
   type: ProgramType;
 
+  @ApiPropertyOptional({ example: 'business', description: 'Category/genre' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  category?: string;
+
+  @ApiPropertyOptional({
+    example: 'ar',
+    description: 'Language code',
+    default: 'ar',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  language?: string;
+
   @ApiPropertyOptional({ example: 'https://random-server.com/img.jpg' })
   @IsOptional()
   @IsUrl()
