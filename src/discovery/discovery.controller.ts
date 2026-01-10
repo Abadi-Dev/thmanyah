@@ -1,62 +1,40 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { SearchService } from '../search/search.service';
+import { Controller, Get, Query, Param } from '@nestjs/common';
+import { DiscoveryService } from './discovery.service';
+import { PaginationDto } from '../common';
+import { SlugParamDto, ProgramEpisodeParamsDto } from './dto';
 
-@ApiTags('discovery')
 @Controller('discovery')
 export class DiscoveryController {
-  constructor(private readonly searchService: SearchService) {}
+  constructor(private readonly discoveryService: DiscoveryService) {}
 
-  @Get('search')
-  async search(
-    @Query('q') query: string,
-    @Query('limit') limit?: string,
+  @Get('programs')
+  async getPrograms(@Query() paginationDto: PaginationDto) {
+    return this.discoveryService.getPrograms(paginationDto);
+  }
+
+  @Get('programs/:slug')
+  async getProgramBySlug(@Param() params: SlugParamDto) {
+    return this.discoveryService.getProgramBySlug(params.slug);
+  }
+
+  @Get('programs/:slug/episodes')
+  async getProgramEpisodes(
+    @Param() params: SlugParamDto,
+    @Query() paginationDto: PaginationDto,
   ) {
-    if (!query || query.trim().length < 2) {
-      return { programs: [], episodes: [] };
-    }
+    return this.discoveryService.getProgramEpisodes(params.slug, paginationDto);
+  }
 
-    const results = await this.searchService.searchAll(
-      query.trim(),
-      limit ? parseInt(limit, 10) : 10,
+  @Get('programs/:programSlug/episodes/:episodeSlug')
+  async getEpisode(@Param() params: ProgramEpisodeParamsDto) {
+    return this.discoveryService.getEpisodeBySlug(
+      params.programSlug,
+      params.episodeSlug,
     );
-
-    return results;
   }
 
-  @Get('search/programs')
-  async searchPrograms(
-    @Query('q') query: string,
-    @Query('type') type?: string,
-    @Query('limit') limit?: string,
-  ) {
-    if (!query || query.trim().length < 2) {
-      return { hits: [], total: 0 };
-    }
-
-    const filter = type ? `type = "${type}"` : undefined;
-
-    return this.searchService.searchPrograms(query.trim(), {
-      filter,
-      limit: limit ? parseInt(limit, 10) : 20,
-    });
-  }
-
-  @Get('search/episodes')
-  async searchEpisodes(
-    @Query('q') query: string,
-    @Query('programId') programId?: string,
-    @Query('limit') limit?: string,
-  ) {
-    if (!query || query.trim().length < 2) {
-      return { hits: [], total: 0 };
-    }
-
-    const filter = programId ? `programId = "${programId}"` : undefined;
-
-    return this.searchService.searchEpisodes(query.trim(), {
-      filter,
-      limit: limit ? parseInt(limit, 10) : 20,
-    });
+  @Get('featured')
+  async getFeatured() {
+    return this.discoveryService.getFeatured();
   }
 }
