@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CacheModule } from './cache/cache.module';
 import { CmsModule } from './cms/cms.module';
 import { ProgramsModule } from './programs/programs.module';
 import { SearchModule } from './search/search.module';
@@ -13,6 +14,7 @@ import { DiscoveryModule } from './discovery/discovery.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    CacheModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
