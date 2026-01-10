@@ -1,8 +1,10 @@
 import { Module, Global } from '@nestjs/common';
 import { SearchService } from './search.service';
+import { SearchController } from './search.controller';
 
-@Global() // Make available everywhere without importing
+@Global()
 @Module({
+  controllers: [SearchController],
   providers: [SearchService],
   exports: [SearchService],
 })

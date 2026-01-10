@@ -43,7 +43,12 @@ export class SearchService implements OnModuleInit {
       ]);
 
       // filters
-      await this.programsIndex.updateFilterableAttributes(['type', 'status']);
+      await this.programsIndex.updateFilterableAttributes([
+        'type',
+        'status',
+        'category',
+        'language',
+      ]);
 
       await this.episodesIndex.updateFilterableAttributes([
         'programId',
@@ -159,6 +164,8 @@ export class SearchService implements OnModuleInit {
       slug: program.slug,
       description: program.description,
       type: program.type,
+      category: program.category,
+      language: program.language,
       status: program.status,
       thumbnailUrl: program.thumbnailUrl,
     };
