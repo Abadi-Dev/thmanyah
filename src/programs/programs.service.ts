@@ -1,11 +1,13 @@
 import {
   Injectable,
+  Inject,
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Equal, Repository } from 'typeorm';
 import { Program, ProgramStatus } from './entities/program.entity';
+import { Episode, EpisodeStatus } from '../episodes/entities/episode.entity';
 import { CreateProgramDto, UpdateProgramDto } from './dto';
 import { PaginationDto, PaginatedResult } from '../common';
 import { SearchService } from '../search/search.service';
@@ -15,6 +17,8 @@ export class ProgramsService {
   constructor(
     @InjectRepository(Program)
     private readonly programRepository: Repository<Program>,
+    @InjectRepository(Episode)
+    private readonly episodeRepository: Repository<Episode>,
     private readonly searchService: SearchService,
   ) {}
 
@@ -100,10 +104,20 @@ export class ProgramsService {
 
   async remove(id: string): Promise<void> {
     const program = await this.findOne(id);
+
+    // Get all episodes before deletion (for Meilisearch cleanup)
+    const episodes = await this.episodeRepository.find({
+      where: { programId: Equal(id) },
+    });
+
+    // Remove program (episodes cascade deleted in DB)
     await this.programRepository.remove(program);
 
-    // Remove from Meilisearch
+    // Remove program and all its episodes from Meilisearch
     this.searchService.removeProgram(id);
+    for (const episode of episodes) {
+      this.searchService.removeEpisode(episode.id);
+    }
   }
 
   async publish(id: string): Promise<Program> {
@@ -121,6 +135,10 @@ export class ProgramsService {
     program.publishedAt = null;
     const updated = await this.programRepository.save(program);
     this.searchService.indexProgram(updated);
+
+    // Cascade: unpublish all episodes
+    await this.cascadeEpisodeStatus(id, EpisodeStatus.DRAFT);
+
     return updated;
   }
 
@@ -129,6 +147,10 @@ export class ProgramsService {
     program.status = ProgramStatus.ARCHIVED;
     const updated = await this.programRepository.save(program);
     this.searchService.indexProgram(updated);
+
+    // Cascade: archive all episodes
+    await this.cascadeEpisodeStatus(id, EpisodeStatus.ARCHIVED);
+
     return updated;
   }
 
@@ -137,6 +159,32 @@ export class ProgramsService {
     program.status = ProgramStatus.DRAFT;
     const updated = await this.programRepository.save(program);
     this.searchService.indexProgram(updated);
+
+    // Cascade: restore all episodes to draft
+    await this.cascadeEpisodeStatus(id, EpisodeStatus.DRAFT);
+
     return updated;
+  }
+
+  private async cascadeEpisodeStatus(
+    programId: string,
+    status: EpisodeStatus,
+  ): Promise<void> {
+    // Update all episodes in database
+    await this.episodeRepository.update(
+      { programId: Equal(programId) },
+      {
+        status,
+        publishedAt: status === EpisodeStatus.PUBLISHED ? new Date() : null,
+      },
+    );
+
+    // Update all episodes in Meilisearch
+    const episodes = await this.episodeRepository.find({
+      where: { programId: Equal(programId) },
+    });
+    for (const episode of episodes) {
+      this.searchService.indexEpisode(episode);
+    }
   }
 }
