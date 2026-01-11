@@ -1,0 +1,38 @@
+[
+  {
+    "id": "dabd1b4d-61bb-476c-8d43-f08c13dbcb3a",
+    "slug": "fnjan",
+    "title": "بودكاست فنجان",
+    "description": "كل يوم أحد. ضيف معي أنا عبدالرحمن أبومالح. في بودكاست فنجان، سنأخذ من كل مذاق رشفة. لا معايير، ولا مواضيع محددة، لكن الأكيد، هنا كثير من المتعة والفائدة.",
+    "type": "video",
+    "category": "podcast",
+    "language": "ar",
+    "thumbnailUrl": "https://prod842022-kiet-v2-storage-uploadsbucketc4b27cc7-115kl3obdhv7w.s3.eu-central-1.amazonaws.com/assets/tenant/1jhggnmybp/projects/86246ad7-c46a-428c-8261-aaaaee4ffb1f.jpeg",
+    "youtubeId": "PLeNNUmE-BlnEls2kOkiV2CXMezV6oaq8I",
+    "status": "published"
+  },
+  {
+    "id": "59066c8e-baa9-45d0-a3a7-729f5033c1a3",
+    "slug": "socrates",
+    "title": "بودكاست سقراط",
+    "description": "تعيش السعودية مرحلة تحول ضخمة ومثيرة، وفي بودكاست سقراط ننقل أسئلتكم حولها ونضعها على طاولة قادة التحول.",
+    "type": "video",
+    "category": "podcast",
+    "language": "ar",
+    "thumbnailUrl": "https://prod842022-kiet-v2-storage-uploadsbucketc4b27cc7-115kl3obdhv7w.s3.eu-central-1.amazonaws.com/assets/tenant/1jhggnmybp/projects/6c9d0d2d-0ba5-43c0-a8cc-eeb7ab0e6937.jpeg",
+    "youtubeId": "PLeNNUmE-BlnH6BfF8o6I3QQDCPYhwjBWZ",
+    "status": "published"
+  },
+  {
+    "id": "a16f7096-b204-4902-99b1-027cc8460833",
+    "slug": "sowalif-business",
+    "title": "بودكاست سوالف بزنس",
+    "description": "بودكاست للمهتمين بالبزنس وريادة الأعمال، مع مشهور الدبيان. كل حلقة راح تسمع تجربة شخص في البزنس بتفاصيلها، بدون مجاملات أو تنظير.",
+    "type": "video",
+    "category": "podcast",
+    "language": "ar",
+    "thumbnailUrl": "https://r2-bucket.thmanyah.com/cdn-cgi/image/width=700/assets/tenant/1jhggnmybp/projects/5d7c7e00-caa5-4869-bcd6-a20dc1377a1b.png",
+    "youtubeId": "PLeNNUmE-BlnE5GVCM_aZtWCLzCzHYA-ho",
+    "status": "published"
+  }
+]
