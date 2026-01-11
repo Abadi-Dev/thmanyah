@@ -49,7 +49,7 @@ echo "=================================="
 # -----------------------------------------------------------------------------
 # Step 1: Setup Node.js environment
 # -----------------------------------------------------------------------------
-echo -e "\n${YELLOW}[1/5] Setting up Node.js...${NC}"
+echo -e "\n${YELLOW}[1/6] Setting up Node.js...${NC}"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
@@ -62,9 +62,32 @@ nvm use 20 > /dev/null 2>&1 || {
 echo -e "${GREEN}Using Node.js $(node -v)${NC}"
 
 # -----------------------------------------------------------------------------
-# Step 2: Start Docker services
+# Step 2: Install dependencies
 # -----------------------------------------------------------------------------
-echo -e "\n${YELLOW}[2/5] Starting Docker services...${NC}"
+echo -e "\n${YELLOW}[2/6] Installing dependencies...${NC}"
+
+cd "$PROJECT_DIR"
+
+if [ ! -d "node_modules" ]; then
+    echo "Installing backend dependencies..."
+    npm install
+else
+    echo "Backend dependencies already installed"
+fi
+
+if [ ! -d "web/node_modules" ]; then
+    echo "Installing frontend dependencies..."
+    cd web && npm install && cd ..
+else
+    echo "Frontend dependencies already installed"
+fi
+
+echo -e "${GREEN}Dependencies ready${NC}"
+
+# -----------------------------------------------------------------------------
+# Step 3: Start Docker services
+# -----------------------------------------------------------------------------
+echo -e "\n${YELLOW}[3/6] Starting Docker services...${NC}"
 
 if ! docker info > /dev/null 2>&1; then
     echo -e "${RED}Docker is not running. Please start Docker first.${NC}"
@@ -99,16 +122,16 @@ done
 echo -e "${GREEN}All services are ready${NC}"
 
 # -----------------------------------------------------------------------------
-# Step 3: Seed the database
+# Step 4: Seed the database
 # -----------------------------------------------------------------------------
-echo -e "\n${YELLOW}[3/5] Seeding database...${NC}"
+echo -e "\n${YELLOW}[4/6] Seeding database...${NC}"
 npm run seed
 echo -e "${GREEN}Database seeded with sample data${NC}"
 
 # -----------------------------------------------------------------------------
-# Step 4: Start the backend
+# Step 5: Start the backend
 # -----------------------------------------------------------------------------
-echo -e "\n${YELLOW}[4/5] Starting backend...${NC}"
+echo -e "\n${YELLOW}[5/6] Starting backend...${NC}"
 npm run start:dev &
 BACKEND_PID=$!
 
@@ -122,9 +145,9 @@ echo -e "${GREEN}Backend running at http://localhost:3000${NC}"
 sleep 2
 
 # -----------------------------------------------------------------------------
-# Step 5: Start the frontend
+# Step 6: Start the frontend
 # -----------------------------------------------------------------------------
-echo -e "\n${YELLOW}[5/5] Starting frontend...${NC}"
+echo -e "\n${YELLOW}[6/6] Starting frontend...${NC}"
 cd "$PROJECT_DIR/web"
 npm run dev &
 FRONTEND_PID=$!
