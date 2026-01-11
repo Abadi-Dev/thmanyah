@@ -1,4 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { MeiliSearch, Index } from 'meilisearch';
 import { Program } from '../programs/entities/program.entity';
 import { Episode } from '../episodes/entities/episode.entity';
@@ -10,7 +12,12 @@ export class SearchService implements OnModuleInit {
   private programsIndex: Index;
   private episodesIndex: Index;
 
-  constructor() {
+  constructor(
+    @InjectRepository(Program)
+    private programRepository: Repository<Program>,
+    @InjectRepository(Episode)
+    private episodeRepository: Repository<Episode>,
+  ) {
     this.client = new MeiliSearch({
       host: process.env.MEILISEARCH_HOST || 'http://localhost:7700',
     });
@@ -18,6 +25,8 @@ export class SearchService implements OnModuleInit {
 
   async onModuleInit() {
     await this.setupIndexes();
+    // Auto-reindex on startup to sync with database
+    await this.reindexAll();
   }
 
   private async setupIndexes() {
@@ -183,5 +192,32 @@ export class SearchService implements OnModuleInit {
       status: episode.status,
       thumbnailUrl: episode.thumbnailUrl,
     };
+  }
+
+  // Reindex all data from database
+  async reindexAll(): Promise<{ programs: number; episodes: number }> {
+    this.logger.log('Starting full reindex...');
+
+    // Clear existing indexes
+    await this.programsIndex.deleteAllDocuments();
+    await this.episodesIndex.deleteAllDocuments();
+
+    // Fetch all from database
+    const programs = await this.programRepository.find();
+    const episodes = await this.episodeRepository.find();
+
+    // Index all
+    if (programs.length > 0) {
+      await this.indexPrograms(programs);
+    }
+    if (episodes.length > 0) {
+      await this.indexEpisodes(episodes);
+    }
+
+    this.logger.log(
+      `Reindex complete: ${programs.length} programs, ${episodes.length} episodes`,
+    );
+
+    return { programs: programs.length, episodes: episodes.length };
   }
 }
