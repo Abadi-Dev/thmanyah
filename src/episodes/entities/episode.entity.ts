@@ -34,9 +34,6 @@ export class Episode {
   @Column({ type: 'int' })
   episodeNumber: number;
 
-  @Column({ type: 'int', nullable: true })
-  seasonNumber: number | null;
-
   @Column({ type: 'varchar', length: 255, unique: true })
   slug: string;
 

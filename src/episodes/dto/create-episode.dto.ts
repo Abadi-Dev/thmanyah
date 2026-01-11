@@ -21,15 +21,6 @@ export class CreateEpisodeDto {
   @Min(1)
   episodeNumber: number;
 
-  @ApiPropertyOptional({
-    example: 1,
-    description: 'Season number if applicable',
-  })
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  seasonNumber?: number;
-
   @ApiProperty({ example: 'Episode Title Here' })
   @IsString()
   @IsNotEmpty()
