@@ -10,6 +10,7 @@ Before running this project, ensure you have the following installed:
 | **nvm** | Latest | [nvm installation guide](https://github.com/nvm-sh/nvm#installing-and-updating) |
 | **Docker** | Latest | [Docker installation guide](https://docs.docker.com/get-docker/) |
 | **Docker Compose** | v2.x | Included with Docker Desktop |
+| **ENV File** |  | Create an env File and copy the velues from the env section below |
 
 ### Installing nvm and Node.js
 
@@ -88,7 +89,7 @@ cd web && npm run dev
 
 ## Environment Variables
 
-Default configuration for local testing (no `.env` file needed):
+Default configuration for local testing:
 
 ```env
 DB_HOST=localhost
